@@ -17,8 +17,8 @@ const client = new MongoClient(uri);
 async function uploadProblems() {
   try {
     await client.connect();
-    const db = client.db("problemDB"); // Your DB name
-    const collection = db.collection("problems"); // Collection name
+    const db = client.db("problemSet"); // DB name
+    const collection = db.collection("Problems"); // Collection name
 
     const titles = fs.readFileSync(path.join(__dirname, "../data/problem-titles.txt"), "utf8").split("\n").map(title => title.trim());
     const urls = fs.readFileSync(path.join(__dirname, "../data/problem-urls.txt"), "utf8").split("\n").map(url => url.trim());
@@ -31,7 +31,7 @@ async function uploadProblems() {
         : "Description not found.";
 
       problems.push({
-        _id: i + 1,
+        problemId: i + 1,
         title: titles[i],
         url: urls[i],
         description: description
