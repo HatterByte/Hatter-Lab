@@ -17,6 +17,9 @@ router.get("/", async (req, res) => {
     // Process the query
     const queryKeywords = processQuery(query, keywords);
 
+    const problems = await Problem.find({}, "title"); // Fetch only 'title' field
+    const titles = problems.map((problem) => problem.title);
+
     // Calculate BM25 scores
     const avgdl = 124.761826;
     const arr = calculateBM25(
