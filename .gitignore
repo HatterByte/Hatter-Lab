@@ -1,10 +1,14 @@
 # Node modules
+backend/node_modules/
+frontend/node_modules/
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
 # Environment variables
+backend/.env
+frontend/.env
 .env
 .env.local
 .env.development.local
@@ -21,9 +25,9 @@ pnpm-debug.log*
 .stacktrace
 
 # Ignore problems folder
-problems/
+backend/problems/
 
 # Ignore specific files in the data folder
-data/problem-urls.txt
-data/problem-titles.txt
+backend/data/problem-urls.txt
+backend/data/problem-titles.txt
 

@@ -1,25 +1,10 @@
 {
-  "name": "hatterlab",
-  "version": "1.0.0",
-  "description": "DSA Search Engine",
-  "main": "index.js",
   "scripts": {
-    "start": "node scripts/termFreqGen.js"
+    "client": "cd frontend && npm run dev",
+    "server": "cd backend && nodemon index.js",
+    "dev": "concurrently \"npm run client\" \"npm run server\""
   },
-  "author": "HatterByte",
-  "license": "ISC",
-  "type": "module",
   "dependencies": {
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "mongodb": "^6.14.2",
-    "mongoose": "^8.12.1",
-    "natural": "^8.0.1",
-    "number-to-words": "^1.2.4",
-    "stopword": "^3.1.4",
-    "string-similarity": "^4.0.4",
-    "wink-lemmatizer": "^3.0.4",
-    "words-to-numbers": "^1.5.1"
+    "concurrently": "^9.1.2"
   }
 }

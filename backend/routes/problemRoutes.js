@@ -3,8 +3,8 @@ import Problem from "../models/Problems.js";
 
 const router = express.Router();
 
-const formatText = (text,id) => {
-  if (id <= 1773) {
+const formatText = (text,url) => {
+  if (url.includes("leetcode")) {
     text = text.split("ListShare");
     text = text[1];
     text = text.split("Accepted");
@@ -13,18 +13,22 @@ const formatText = (text,id) => {
   // return text;
   const find = "\r\n";
   const re = new RegExp(find, "g");
-  return text.replace(re, "<br/>");
+  text = text.replace(re, "<br/>");
+  return text;
 };
 
 const formatTitle = (title) => {
-  const parts = title.split("-");
-  return parts.map(word => word.trim()).join(" ");
+  return title
+    .split(/[-\s]+/) // Split at both "-" and " " (one or more occurrences)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize first letter
+    .join(" "); // Join with a space
 };
 
-const getSourceType = (id) => {
-  if (id < 1774) return "Leetcode";
-  if (id < 2214) return "Interview Bit";
-  return "Techdelight";
+const getSourceType = (url) => {
+  if (url.includes("leetcode")) return "Leetcode";
+  if (url.includes("interviewbit")) return "Interview Bit";
+  if (url.includes("techiedelight")) return "Techiedelight";
+  return "Unknown";
 };
 
 // GET problem by ID
@@ -36,14 +40,14 @@ router.get("/:id", async (req, res) => {
       return res.status(404).json({ error: "Problem not found" });
     }
 
-    const formattedText = formatText(problem.description,id);
+    const formattedText = formatText(problem.description,problem.url);
     const formattedTitle = formatTitle(problem.title);
-    const sourceType = getSourceType(id);
+    const sourceType = getSourceType(problem.url);
 
     const response = {
       title: formattedTitle,
-      link: problem.url,
-      value: formattedText,
+      url: problem.url,
+      description: formattedText,
       type: sourceType
     };
 
