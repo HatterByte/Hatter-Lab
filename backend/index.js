@@ -15,7 +15,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://hatter-lab.onrender.com",
+      "https://hatterlab.onrender.com",
     ], // Frontend URL
     credentials: true,
   })
