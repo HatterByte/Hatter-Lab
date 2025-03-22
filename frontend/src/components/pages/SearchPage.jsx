@@ -4,6 +4,9 @@ import SearchBar from "../searchBar";
 import SearchResults from "../searchResults";
 import loadingIcon from "../../assets/Dual-Ball.svg"
 
+
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
 const SearchPage = () => {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,7 +21,7 @@ const SearchPage = () => {
   useEffect(() => {
     removeFocus();
     setLoading(true);
-    fetch(`http://localhost:3000/search?query=${query}`)
+    fetch(`${backendUrl}/search?query=${query}`)
       .then((res) => res.json())
       .then((data) => {
         setResults(data);

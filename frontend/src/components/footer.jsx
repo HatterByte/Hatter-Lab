@@ -7,7 +7,7 @@ const Footer = () => {
     <footer className="bg-[#262A2B] text-center py-4">
       <div className="flex justify-center space-x-4 mb-2">
         <a
-          href="https://www.linkedin.com"
+          href="https://www.linkedin.com/in/anubhav-chandak-8008292b0/"
           target="_blank"
           rel="noopener noreferrer"
           className="footer-link"

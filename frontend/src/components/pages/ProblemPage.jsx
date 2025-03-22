@@ -3,13 +3,15 @@ import { useParams } from "react-router-dom";
 import ProblemDesc from "../problemDesc";
 import loadingIcon from "../../assets/Dual-Ball.svg";
 
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
 const ProblemPage = () => {
   const { id } = useParams();
   const [problem, setProblem] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`http://localhost:3000/problem/${id}`)
+    fetch(`${backendUrl}/problem/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch problem");
         return res.json();
