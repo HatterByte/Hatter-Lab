@@ -1,66 +1,74 @@
-import { removeStopwords } from 'stopword';
-import { wordsToNumbers } from 'words-to-numbers';
-import converter from 'number-to-words';
-import lemmatizer from 'wink-lemmatizer';
+import { removeStopwords } from "stopword";
+import { wordsToNumbers } from "words-to-numbers";
+import converter from "number-to-words";
+import lemmatizer from "wink-lemmatizer";
 // const {  } = pkg;
-import natural from 'natural';
+import natural from "natural";
 
 export const processQuery = (query, keywords) => {
-  const oldString = query.split(" ");
-  const newString = removeStopwords(oldString).sort();
-  let queryKeywords = [];
+  // 1. Normalize the query string
+  let normQuery = query
+    .toLowerCase()
+    .trim()
+    .replace(/[.,!?;:()\[\]{}\-_=+\/'"\\|`~@#$%^&*<>]/g, " ")
+    .replace(/\s+/g, " ");
 
-  // Extract numbers and their word forms
-  const getNum = query.match(/\d+/g);
-  if (getNum) {
-    getNum.forEach(num => {
-      queryKeywords.push(num);
-      const numStr = converter.toWords(Number(num));
-      queryKeywords.push(numStr);
+  // 2. Tokenize
+  let tokens = normQuery.split(" ").filter(Boolean);
+  // 3. Clean tokens
+  tokens = removeStopwords(tokens).filter(
+    (t) => t.length > 1 || /^\d$/.test(t) // keep single-digit numbers
+  );
+  let output = [];
 
-      numStr.split("-").forEach(key => {
-        queryKeywords.push(key);
-        key.split(" ").forEach(subKey => queryKeywords.push(subKey));
-      });
+  // 4. For each token, expand
+  tokens.forEach((token) => {
+    if (!token) return;
+    output.push(token);
+    // Lemmatize (verb, noun, adjective)
+    output.push(lemmatizer.verb(token));
+    output.push(lemmatizer.noun(token));
+    output.push(lemmatizer.adjective(token));
+    // Handle numbers
+    if (/^\d+$/.test(token)) {
+      // Digit to word
+      const wordForm = converter.toWords(Number(token));
+      output.push(wordForm);
+      // Also add ordinal (e.g., 2 -> second)
+      try {
+        output.push(converter.toWordsOrdinal(Number(token)));
+      } catch {}
+    } else {
+      // Word to digit
+      const num = wordsToNumbers(token);
+      if (num && num.toString() !== token) output.push(num.toString());
+    }
+  });
+  output = [...new Set(output)];
+  // 5. Spellcheck (top 2 corrections, Levenshtein distance ≤ 2)
+  const spellcheck = new natural.Spellcheck(keywords);
+  let spellCorrections = [];
+  output.forEach((token) => {
+    let threshold = 1;
+    if (token.length > 4) threshold = 2;
+    const corrections = spellcheck.getCorrections(token, threshold);
+    console.log("Spell corrections for token:", token, corrections);
+    corrections.forEach((corr) => {
+      if (corr !== token && natural.LevenshteinDistance(token, corr) <= 2) {
+        spellCorrections.push(corr);
+        console.log("Adding correction:", corr);
+        // Lemmatize corrections
+        spellCorrections.push(lemmatizer.verb(corr));
+        spellCorrections.push(lemmatizer.noun(corr));
+        spellCorrections.push(lemmatizer.adjective(corr));
+      }
     });
-  }
-
-  // Process words and handle camel case
-  newString.forEach(word => {
-    const cleanWord = word.toLowerCase().replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, "");
-    if (cleanWord) queryKeywords.push(cleanWord);
-
-    const letr = cleanWord.match(/[a-zA-Z]+/g);
-    if (letr) letr.forEach(w => queryKeywords.push(w));
-
-    const numWord = wordsToNumbers(cleanWord).toString();
-    if (numWord !== cleanWord) queryKeywords.push(numWord);
   });
+  output = output.concat(spellCorrections);
 
-  // Handle grammar and spellcheck
-  const queryKeywordsNew = [...queryKeywords];
-  queryKeywords.forEach(key => {
-    const lemma = lemmatizer.verb(key);
-    queryKeywordsNew.push(lemma);
-    const spellcheck = new natural.Spellcheck(keywords);
-    const spellkey1 = spellcheck.getCorrections(key);
-    const spellkey2 = spellcheck.getCorrections(lemma);
-    if (spellkey1.indexOf(key) == -1) {
-      spellkey1.forEach((k1) => {
-        queryKeywordsNew.push(k1);
-        queryKeywordsNew.push(lemmatizer.verb(k1));
-      });
-    }
-
-    if (spellkey2.indexOf(lemma) == -1) {
-      spellkey2.forEach((k2) => {
-        queryKeywordsNew.push(k2);
-        queryKeywordsNew.push(lemmatizer.verb(k2));
-      });
-    }
-  });
-
-  const uniqueKeywords = [...new Set(queryKeywordsNew)];
-  // Now we need to filter out those keywords which are present in our dataset
-  return uniqueKeywords.filter(key => keywords.includes(key)).sort();
+  // 6. Deduplicate
+  const unique = [...new Set(output)];
+  // console.log("Unique tokens after processing:", unique);
+  // 7. Filter to only those in keywords
+  return unique.filter((key) => keywords.includes(key)).sort();
 };

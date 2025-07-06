@@ -1,4 +1,3 @@
-// Import necessary modules
 import { removeStopwords } from "stopword";
 import fs from "fs";
 import path from "path";
