@@ -1,4 +1,5 @@
 import stringSimilarity from "string-similarity";
+import invertedIndex from "../modules/invertedIndex.js";
 
 export const calculateBM25 = (
   queryKeywords,
@@ -16,29 +17,31 @@ export const calculateBM25 = (
   // Get IDs of query keywords
   const qid = queryKeywords.map((key) => keywords.indexOf(key));
 
+  const relevantDocs = new Set();
+  qid.forEach((key) => {
+    const docs = invertedIndex.get(key);
+    if (docs) {
+      docs.forEach((docId) => relevantDocs.add(docId));
+    }
+  });
   // Calculate BM25 scores
-  for (let i = 0; i < N; i++) {
+  relevantDocs.forEach((i) => {
     let s = 0;
     qid.forEach((key) => {
       const idfKey = IDF[key];
-      let tf = 0;
-      for (let k = 0; k < TF[i].length; k++) {
-        if (TF[i][k].id == key) {
-          tf = TF[i][k].val / length[i];
-          break;
-        }
-      }
+      let tf = TF[i].get(key) || 0;
+      tf = tf / length[i];
       const tfkey = tf;
       const x = tfkey * (1.2 + 1);
       const y = tfkey + 1.2 * (1 - 0.75 + 0.75 * (length[i] / avgdl));
       let BM25 = (x / y) * idfKey;
 
-      // Give higher weightage to Leetcode and Interview Bit problems
-      if (i < 2214) BM25 *= 2;
+      if (i < 1774) BM25 *= 2; //lc
+      else if (i < 2214) BM25 *= 1.2; //ib
+
       s += BM25;
     });
 
-    // Title Similarity
     const title = titles[i] || "";
     const normalizedTitle = title
       .toLowerCase()
@@ -52,10 +55,11 @@ export const calculateBM25 = (
       normalizedTitle,
       normalizedQuery
     );
-    s *= titSim;
 
-    arr.push({ id: i, sim: s, titSim: titSim });
-  }
+    s = 0.5 * (s * titSim) + 0.5 * titSim;
+
+    arr.push({ id: i, sim: s });
+  });
 
   // Sort by score
   arr.sort((a, b) => b.sim - a.sim);

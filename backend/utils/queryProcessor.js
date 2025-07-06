@@ -52,11 +52,9 @@ export const processQuery = (query, keywords) => {
     let threshold = 1;
     if (token.length > 4) threshold = 2;
     const corrections = spellcheck.getCorrections(token, threshold);
-    console.log("Spell corrections for token:", token, corrections);
     corrections.forEach((corr) => {
       if (corr !== token && natural.LevenshteinDistance(token, corr) <= 2) {
         spellCorrections.push(corr);
-        console.log("Adding correction:", corr);
         // Lemmatize corrections
         spellCorrections.push(lemmatizer.verb(corr));
         spellCorrections.push(lemmatizer.noun(corr));

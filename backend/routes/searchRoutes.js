@@ -34,7 +34,6 @@ router.get("/", (req, res) => {
     // Fetch top 10 results directly by array index
     const response = [];
     let nonZero = 0;
-    // console.log("BM25 results:", arr);
     for (let i = 0; i < Math.min(6, arr.length); i++) {
       if (arr[i].sim !== 0) nonZero++;
       const idx = arr[i].id;

@@ -14,7 +14,7 @@ const N = 3023;
 let tf = new Array(N);
 
 for (let i = 0; i < N; i++) {
-  tf[i] = [];
+  tf[i] = new Map();
 }
 
 // Read and parse the TF.txt file
@@ -27,10 +27,7 @@ for (let k = 0; k < temp.length; k++) {
     const i = Number(arr[0]);
     const j = Number(arr[1]);
     const val = Number(arr[2]);
-    tf[i].push({
-      id: j,
-      val: val,
-    });
+    tf[i].set(j, val);
   }
 }
 
