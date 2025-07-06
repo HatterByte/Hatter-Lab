@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import SearchBar from "../searchBar";
 import SearchResults from "../searchResults";
-import loadingIcon from "../../assets/Dual-Ball.svg"
-
+import loadingIcon from "../../assets/Dual-Ball.svg";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -20,14 +19,35 @@ const SearchPage = () => {
 
   useEffect(() => {
     removeFocus();
-    setLoading(true);
-    fetch(`${backendUrl}/search?query=${query}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setResults(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    // Try to get cached results
+    const cached = sessionStorage.getItem("searchCache");
+    let cacheObj = null;
+    if (cached) {
+      try {
+        cacheObj = JSON.parse(cached);
+      } catch {}
+    }
+    if (
+      cacheObj &&
+      cacheObj.query === query &&
+      Array.isArray(cacheObj.results)
+    ) {
+      setResults(cacheObj.results);
+      setLoading(false);
+    } else {
+      setLoading(true);
+      fetch(`${backendUrl}/search?query=${query}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setResults(data);
+          setLoading(false);
+          sessionStorage.setItem(
+            "searchCache",
+            JSON.stringify({ query, results: data })
+          );
+        })
+        .catch(() => setLoading(false));
+    }
   }, [query]);
 
   return (
